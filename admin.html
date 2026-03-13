@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Admin - MiLocal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white p-6">
+    <div id="admin-login" class="max-w-md mx-auto bg-slate-800 p-8 rounded-2xl shadow-2xl mt-20 text-center">
+        <div class="mb-6 bg-orange-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-orange-500/20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h1 class="text-xl font-bold mb-4">Acceso Administrativo</h1>
+        <input type="password" id="admin-pass" placeholder="Contraseña" class="w-full bg-slate-700 p-3 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 text-center mb-4">
+        <button onclick="checkPass()" class="w-full bg-orange-600 hover:bg-orange-500 py-3 rounded-xl font-bold transition-all">Ingresar</button>
+        <p id="login-error" class="text-red-400 text-xs mt-3 hidden">Contraseña incorrecta</p>
+    </div>
+
+    <div id="admin-content" class="hidden">
+        <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 p-4">
+    <div class="bg-slate-800 p-6 rounded-2xl shadow-xl h-fit">
+        <h1 class="text-2xl font-bold mb-6 text-orange-500">Cargar Producto</h1>
+        <form id="admin-form" class="space-y-4">
+            <input type="text" id="p-nombre" placeholder="Nombre del plato" class="w-full bg-slate-700 p-3 rounded-xl outline-none focus:ring-2 focus:ring-orange-500" required>
+            <div class="flex gap-2">
+                <input type="number" id="p-precio" placeholder="Precio" class="w-1/2 bg-slate-700 p-3 rounded-xl outline-none" required>
+                <select id="p-cat" class="w-1/2 bg-slate-700 p-3 rounded-xl outline-none">
+                    <option value="Minutas">Minutas</option>
+                    <option value="Parrilla">Parrilla</option>
+                    <option value="Bebidas">Bebidas</option>
+                </select>
+            </div>
+            <textarea id="p-desc" placeholder="Descripción corta" class="w-full bg-slate-700 p-3 rounded-xl outline-none h-20"></textarea>
+            <input type="text" id="p-img" placeholder="img/foto.jpg" class="w-full bg-slate-700 p-3 rounded-xl outline-none">
+            
+            <button type="submit" class="w-full bg-orange-600 hover:bg-orange-500 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-orange-900/20">
+                ➕ Agregar a la lista
+            </button>
+        </form>
+
+        <button onclick="descargarDataJS()" class="w-full mt-6 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-2xl flex items-center justify-center gap-2 border border-slate-600 transition-all">
+            📥 Descargar archivo data.js
+        </button>
+    </div>
+
+    <div class="bg-slate-800 p-6 rounded-2xl shadow-xl overflow-hidden">
+        <h2 class="text-xl font-bold mb-4 text-slate-300">Productos en la lista</h2>
+        <div id="lista-control" class="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+            </div>
+    </div>
+</div>
+    </div>
+
+    <script>
+    const CLAVE_ADMIN = '1234'; // Cambia tu clave aquí
+    let listaProductos = JSON.parse(localStorage.getItem('mis_productos')) || [];
+
+    function checkPass() {
+        const pass = document.getElementById('admin-pass').value;
+        if(pass === CLAVE_ADMIN) {
+            document.getElementById('admin-login').classList.add('hidden');
+            document.getElementById('admin-content').classList.remove('hidden');
+            renderListaControl();
+        } else {
+            document.getElementById('login-error').classList.remove('hidden');
+        }
+    }
+
+    // Guardar nuevo producto
+    document.getElementById('admin-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nuevo = {
+            id: Date.now(),
+            nombre: document.getElementById('p-nombre').value,
+            precio: parseInt(document.getElementById('p-precio').value),
+            categoria: document.getElementById('p-cat').value,
+            desc: document.getElementById('p-desc').value,
+            img: document.getElementById('p-img').value || 'img/default.jpg'
+        };
+        listaProductos.push(nuevo);
+        localStorage.setItem('mis_productos', JSON.stringify(listaProductos));
+        renderListaControl();
+        e.target.reset();
+    });
+
+    // Dibujar la lista con botones de borrar
+    function renderListaControl() {
+        const container = document.getElementById('lista-control');
+        container.innerHTML = listaProductos.map(p => `
+            <div class="flex justify-between items-center bg-slate-700/50 p-3 rounded-xl border border-slate-600">
+                <div>
+                    <p class="font-bold text-sm">${p.nombre}</p>
+                    <p class="text-xs text-orange-400">$${p.precio}</p>
+                </div>
+                <button onclick="borrarProducto(${p.id})" class="text-red-400 hover:bg-red-400/10 p-2 rounded-lg transition-all">
+                    Borrar
+                </button>
+            </div>
+        `).join('');
+    }
+
+    function borrarProducto(id) {
+        if(confirm("¿Quitar este producto?")) {
+            listaProductos = listaProductos.filter(p => p.id !== id);
+            localStorage.setItem('mis_productos', JSON.stringify(listaProductos));
+            renderListaControl();
+        }
+    }
+
+    // DESCARGA CORREGIDA
+    function descargarDataJS() {
+        if(listaProductos.length === 0) return alert("Carga al menos un producto antes de descargar.");
+
+        const configBase = {
+            nombre: "La Estación Gourmet",
+            telefono: "5491122334455",
+            moneda: "$",
+            pais: "es-AR"
+        };
+
+        const contenido = `const TIENDA_CONFIG = ${JSON.stringify(configBase, null, 4)};\n\nconst productos = ${JSON.stringify(listaProductos, null, 4)};`;
+        
+        const blob = new Blob([contenido], { type: 'text/javascript' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'data.js';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    }
+</script>
+</body>
+</html>
