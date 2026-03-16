@@ -60,13 +60,26 @@ function renderCategories() {
     
     container.innerHTML = categories.map(cat => `
         <button onclick="filterByCategory('${cat}')" 
-                class="category-btn whitespace-nowrap px-5 py-2 rounded-xl bg-slate-100 text-slate-600 text-sm font-medium transition-all active:scale-95">
+                class="category-btn whitespace-nowrap px-6 py-2.5 rounded-full bg-[#1a1a1a] text-gray-400 border border-white/10 text-sm font-semibold transition-all active:scale-95">
             ${cat}
         </button>
     `).join('');
 }
 
 function filterByCategory(cat) {
+    // Primero, quitamos el estilo activo de todos los botones
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('bg-[#ff6b00]', 'text-black', 'border-[#ff6b00]');
+        btn.classList.add('bg-[#1a1a1a]', 'text-gray-400', 'border-white/10');
+    });
+
+    // Marcamos como activo el botón clickeado
+    const eventBtn = event?.currentTarget;
+    if (eventBtn) {
+        eventBtn.classList.remove('bg-[#1a1a1a]', 'text-gray-400', 'border-white/10');
+        eventBtn.classList.add('bg-[#ff6b00]', 'text-black', 'border-[#ff6b00]');
+    }
+
     if (cat === 'Todos') {
         renderProducts(productos);
     } else {
@@ -81,29 +94,39 @@ function renderProducts(lista) {
     
     if (lista.length === 0) {
         container.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-20 text-slate-400">
-                <i data-lucide="frown" class="w-12 h-12 mb-2"></i>
-                <p>No encontramos lo que buscas</p>
+            <div class="flex flex-col items-center justify-center py-20 text-gray-500">
+                <i data-lucide="frown" class="w-16 h-16 mb-4 opacity-20"></i>
+                <p class="text-xl font-medium">No encontramos lo que buscas</p>
             </div>`;
         if (window.lucide) lucide.createIcons();
         return;
     }
 
     container.innerHTML = lista.map(p => `
-        <div class="flex justify-between gap-4 p-6 border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-            <div class="flex-1">
-                <h3 class="font-bold text-slate-900 text-base">${p.nombre}</h3>
-                <p class="text-sm text-slate-500 mt-1 line-clamp-2">${p.desc}</p>
-                <div class="mt-3 font-bold text-slate-900 text-lg">
+        <div class="flex flex-col bg-[#1a1a1a] rounded-[2.5rem] overflow-hidden mb-8 border border-white/5 shadow-2xl group">
+            <div class="relative w-full h-64 sm:h-72 overflow-hidden">
+                <img src="${p.img}" 
+                     alt="${p.nombre}" 
+                     class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                     onerror="this.src='https://placehold.co/600x400/1a1a1a/ff6b00?text=Crazy+Food'">
+                
+                <div class="absolute top-5 right-5 bg-black/70 backdrop-blur-xl text-[#ff6b00] px-5 py-2 rounded-full font-black text-xl border border-[#ff6b00]/30 shadow-2xl">
                     ${TIENDA_CONFIG.moneda} ${p.precio.toLocaleString()}
                 </div>
             </div>
-            <div class="relative w-24 h-24 flex-shrink-0">
-                <img src="${p.img}" class="w-full h-full object-cover rounded-2xl shadow-sm bg-slate-100">
-                <button onclick="addToCart(${p.id})" 
-                        class="absolute -bottom-2 -right-2 bg-slate-900 text-white w-9 h-9 rounded-full shadow-lg flex items-center justify-center hover:bg-orange-500 transition-transform active:scale-110">
-                    <i data-lucide="plus" class="w-5 h-5"></i>
-                </button>
+
+            <div class="p-6 flex flex-col bg-gradient-to-b from-[#1a1a1a] to-[#0f0f0f]">
+                <div class="flex justify-between items-center gap-4">
+                    <div class="flex-1">
+                        <h3 class="font-bold text-white text-2xl mb-1 tracking-tight group-hover:text-[#ff6b00] transition-colors">${p.nombre}</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed line-clamp-2">${p.desc}</p>
+                    </div>
+                    
+                    <button onclick="addToCart(${p.id})" 
+                            class="bg-[#ff6b00] text-black p-4 rounded-2xl shadow-[0_0_20px_rgba(255,107,0,0.3)] hover:shadow-[0_0_30px_rgba(255,107,0,0.5)] transition-all active:scale-90 flex items-center justify-center">
+                        <i data-lucide="plus" class="w-7 h-7 stroke-[3px]"></i>
+                    </button>
+                </div>
             </div>
         </div>
     `).join('');
