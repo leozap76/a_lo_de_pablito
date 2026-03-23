@@ -1,6 +1,6 @@
 const TIENDA_CONFIG = {
     nombre: "LA ROTISERIA",
-    telefono: "542657234273",
+    telefono: "542657780645",
     moneda: "$",
     // Horarios en formato 24hs
     horario: {
