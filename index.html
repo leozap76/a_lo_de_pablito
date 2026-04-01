@@ -260,27 +260,59 @@ fbq('track', 'PageView');
         const db = firebase.database();
 
         // Función para escuchar la base de datos
-        function cargarMenuDesdeNube() {
-            db.ref('productos').on('value', (snapshot) => {
-                const data = snapshot.val();
-                
-                // ACÁ ESTÁ EL CAMBIO CLAVE: usamos "productos"
-                productos = data || []; 
-                
-                // Actualizamos la pantalla
-                if (typeof renderProductos === 'function') {
-                    renderProductos(); 
-                } else {
-                    initApp(); 
-                }
-            });
+       function cargarMenuDesdeNube() {
+    db.ref('productos').on('value', (snapshot) => {
+        const data = snapshot.val();
+        
+        // Convertimos el objeto de Firebase en un array si es necesario
+        // y lo asignamos a la variable global
+        productos = data ? Object.values(data) : [];
+        
+        console.log("Datos recibidos de Firebase:", productos); // Esto te servirá para ver en la consola si llega el pancho
+
+        // Forzamos el renderizado
+        if (typeof renderProductos === 'function') {
+            renderProductos(); 
+        } else if (typeof initApp === 'function') {
+            initApp();
         }
+    });
+}
 
         // 4. INICIO DE LA APP
         document.addEventListener('DOMContentLoaded', () => {
             initApp();             // Arranca tu app normal
             cargarMenuDesdeNube(); // Empieza a escuchar los cambios en vivo
         });
+
+        function cargarTodoDesdeNube() {
+    // 1. ESCUCHAR PRODUCTOS (Lo que ya tenías)
+    db.ref('productos').on('value', (snapshot) => {
+        const data = snapshot.val();
+        productos = data ? Object.values(data) : [];
+        if (typeof renderProductos === 'function') renderProductos();
+    });
+
+    // 2. NUEVO: ESCUCHAR CONFIGURACIÓN
+    db.ref('config').on('value', (snapshot) => {
+        const configNube = snapshot.val();
+        if (configNube) {
+            // Reemplazamos la TIENDA_CONFIG que viene de data.js por la de la nube
+            window.TIENDA_CONFIG = configNube; 
+            
+            // Actualizamos los textos en la pantalla automáticamente
+            document.getElementById('store-name').innerText = configNube.nombre;
+            // Si tenés funciones que dependan del teléfono o horario, las llamás acá
+            if (typeof initApp === 'function') initApp(); 
+        }
+    });
+}
+
+// Cambiá el listener del final por este:
+document.addEventListener('DOMContentLoaded', () => {
+    cargarTodoDesdeNube();
+});
+
     </script>
 </body>
 </html>

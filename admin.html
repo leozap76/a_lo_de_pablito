@@ -224,12 +224,29 @@
             document.getElementById('display-store-name').innerText = config.nombre;
         }
 
-        function saveConfig() {
-            config.nombre = document.getElementById('conf-nombre').value.toUpperCase();
-            config.whatsapp = document.getElementById('conf-whatsapp').value;
-            document.getElementById('display-store-name').innerText = config.nombre;
-            localStorage.setItem('crazy_config', JSON.stringify(config));
+       function saveConfig() {
+    // 1. Armamos el objeto con los datos de los inputs
+    const nuevaConfig = {
+        nombre: document.getElementById('conf-nombre').value.toUpperCase(),
+        whatsapp: document.getElementById('conf-whatsapp').value,
+        // Agregamos horarios (podés sacar los valores de inputs si los tenés, o dejarlos fijos por ahora)
+        horario: {
+            turno1: { apertura: "11:00", cierre: "15:00" },
+            turno2: { apertura: "20:00", cierre: "02:00" }
         }
+    };
+
+    // 2. Lo subimos a Firebase
+    db.ref('config').set(nuevaConfig)
+      .then(() => {
+          console.log("Configuración guardada en la nube");
+          document.getElementById('display-store-name').innerText = nuevaConfig.nombre;
+      })
+      .catch(err => console.error("Error al guardar config:", err));
+
+    // Opcional: seguimos guardando en localStorage para que el admin cargue rápido
+    localStorage.setItem('crazy_config', JSON.stringify(nuevaConfig));
+}
 
         // --- GESTIÓN DE IMÁGENES ---
         function handleImageSelect(input) {
