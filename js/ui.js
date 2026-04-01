@@ -251,7 +251,10 @@ function updateUI() {
         bar.classList.remove('translate-y-full', 'opacity-0');
         countEl.textContent = totalArticulos;
         if(itemsTextEl) itemsTextEl.textContent = totalArticulos === 1 ? '1 artículo' : `${totalArticulos} artículos`;
-        totalEl.textContent = `${TIENDA_CONFIG.moneda} ${precioTotal.toLocaleString()}`;
+        
+        // 🔥 ESTA ES LA LÍNEA REPARADA 🔥
+        totalEl.textContent = `$ ${precioTotal.toLocaleString()}`;
+        
     } else {
         bar.classList.add('translate-y-full', 'opacity-0');
     }
