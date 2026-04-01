@@ -156,18 +156,26 @@
                 </section>
 
                 <!-- 3. Form Zonas -->
-                <section class="bg-[#1a1a1a] p-8 rounded-[2.5rem] border border-white/5">
-                    <h2 class="text-xl font-bold mb-6 flex items-center gap-3">
-                        <i data-lucide="truck" class="text-[#ff6b00]"></i> Zonas de Envío
-                    </h2>
-                    <form id="zone-form" class="space-y-4">
-                        <input type="text" id="z-nombre" placeholder="Nombre de zona" class="w-full p-4 rounded-2xl" required>
-                        <input type="number" id="z-costo" placeholder="Costo de envío" class="w-full p-4 rounded-2xl" required>
-                        <button type="submit" class="w-full bg-white/5 hover:bg-[#ff6b00] hover:text-black py-4 rounded-2xl font-bold border border-white/10 transition-all uppercase tracking-widest text-xs">
-                            Añadir Zona
-                        </button>
-                    </form>
-                </section>
+         <section class="bg-[#1a1a1a] p-8 rounded-[2.5rem] border border-white/5 shadow-xl">
+    <h2 class="text-xl font-bold mb-6 flex items-center gap-3">
+        <i data-lucide="truck" class="text-[#ff6b00]"></i> Zonas de Envío
+    </h2>
+    <form id="zone-form" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
+            <div>
+                <label class="text-[10px] text-gray-500 font-bold uppercase ml-1">Nombre del Barrio/Zona</label>
+                <input type="text" id="z-nombre" placeholder="Ej: Zona Centro" class="w-full p-4 rounded-2xl mt-1" required>
+            </div>
+            <div>
+                <label class="text-[10px] text-gray-500 font-bold uppercase ml-1">Costo ($)</label>
+                <input type="number" id="z-costo" placeholder="0" class="w-full p-4 rounded-2xl mt-1" required>
+            </div>
+        </div>
+        <button type="submit" class="w-full bg-[#ff6b00]/10 hover:bg-[#ff6b00] text-[#ff6b00] hover:text-black py-4 rounded-2xl font-black border border-[#ff6b00]/20 transition-all uppercase tracking-widest text-xs mt-2">
+            + Añadir Zona de Entrega
+        </button>
+    </form>
+</section>  
             </div>
 
             <!-- Columna Derecha: Listados -->
@@ -186,13 +194,12 @@
 
                 <!-- Lista Zonas -->
                 <div class="bg-[#1a1a1a] p-8 rounded-[2.5rem] border border-white/5">
-                    <h2 class="text-xl font-bold mb-6 flex items-center gap-3">
-                        <i data-lucide="map-pin" class="text-[#ff6b00]"></i> Cobertura y Costos
-                    </h2>
-                    <div id="lista-zonas" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <!-- Zonas -->
-                    </div>
-                </div>
+    <h2 class="text-xl font-bold mb-6 flex items-center gap-3">
+        <i data-lucide="map-pin" class="text-[#ff6b00]"></i> Cobertura y Costos
+    </h2>
+    <div id="lista-zonas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        </div>
+</div>
             </div>
         </div>
     </div>
@@ -299,16 +306,33 @@ function agregarCategoria() {
 
         // --- ZONAS ---
         document.getElementById('zone-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const z = {
-                id: Date.now(),
-                nombre: document.getElementById('z-nombre').value,
-                costo: parseInt(document.getElementById('z-costo').value)
-            };
-            listaZonas.push(z);
-            saveData();
+    e.preventDefault();
+    
+    const nuevaZona = {
+        id: Date.now(),
+        nombre: document.getElementById('z-nombre').value,
+        costo: parseInt(document.getElementById('z-costo').value)
+    };
+
+    // Agregamos a la lista local
+    listaZonas.push(nuevaZona);
+
+    // GUARDAMOS EN FIREBASE (Rama 'zonas')
+    db.ref('zonas').set(listaZonas)
+        .then(() => {
+            Swal.fire({
+                title: "Zona Agregada",
+                icon: "success",
+                timer: 1000,
+                showConfirmButton: false,
+                background: '#1a1a1a',
+                color: '#fff'
+            });
+            renderUI();
             e.target.reset();
-        });
+        })
+        .catch(err => console.error("Error al guardar zona:", err));
+});
 
         // --- CONEXIÓN CON LA NUBE (FIREBASE) ---
         function saveData() {
@@ -335,17 +359,50 @@ function agregarCategoria() {
 }
 
         function loadData() {
-            // Escuchamos la nube en tiempo real
-            db.ref('productos').on('value', (snapshot) => {
-                const data = snapshot.val();
-                listaProductos = data || [];
-                
-                // Si el admin ya pasó la pantalla de login, actualizamos la lista
-                if (!document.getElementById('admin-content').classList.contains('hidden')) {
-                    renderUI();
-                }
-            });
+    // 1. Escuchar PRODUCTOS en tiempo real
+    db.ref('productos').on('value', (snapshot) => {
+        const data = snapshot.val();
+        // Firebase a veces devuelve un objeto, nos aseguramos de tener un array
+        listaProductos = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+        
+        actualizarPantallaSiEsVisible();
+    });
+
+    // 2. Escuchar ZONAS DE ENVÍO en tiempo real
+    db.ref('zonas').on('value', (snapshot) => {
+        const data = snapshot.val();
+        // Lo mismo para las zonas
+        listaZonas = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+        
+        actualizarPantallaSiEsVisible();
+    });
+
+    // 3. Escuchar CONFIGURACIÓN (Nombre, Teléfono, etc.)
+    db.ref('config').on('value', (snapshot) => {
+        const c = snapshot.val();
+        if (c) {
+            document.getElementById('conf-nombre').value = c.nombre || "";
+            document.getElementById('conf-whatsapp').value = c.telefono || "";
+            document.getElementById('display-store-name').innerText = c.nombre || "ADMIN";
+            
+            // Si tenés los inputs de horario, los llena también
+            if (c.horario) {
+                if(document.getElementById('apertura1')) document.getElementById('apertura1').value = c.horario.turno1.apertura;
+                if(document.getElementById('cierre1')) document.getElementById('cierre1').value = c.horario.turno1.cierre;
+                if(document.getElementById('apertura2')) document.getElementById('apertura2').value = c.horario.turno2.apertura;
+                if(document.getElementById('cierre2')) document.getElementById('cierre2').value = c.horario.turno2.cierre;
+            }
         }
+    });
+}
+
+// Función auxiliar para no repetir código
+function actualizarPantallaSiEsVisible() {
+    const content = document.getElementById('admin-content');
+    if (content && !content.classList.contains('hidden')) {
+        renderUI();
+    }
+}
 
         // Ejecutamos la carga inicial
         loadData();
@@ -471,36 +528,59 @@ function agregarProducto() {
     }
 }
 
-        function renderUI() {
+       function renderUI() {
+    // --- 1. RENDER DE PRODUCTOS ---
     const pCont = document.getElementById('lista-productos');
-    document.getElementById('prod-count').innerText = `${listaProductos.length} Items`;
-    
-    pCont.innerHTML = listaProductos.map(p => `
-        <div onclick="prepararEdicion(${p.id})" 
-             class="flex items-center justify-between bg-black/40 p-4 rounded-3xl border border-white/5 group hover:border-[#ff6b00]/50 hover:bg-black/60 transition-all cursor-pointer">
-            
-            <div class="flex items-center gap-4 min-w-0">
-                <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 border border-white/10">
-                    <img src="${p.img}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100/1a1a1a/555?text=?'">
+    if (pCont) {
+        document.getElementById('prod-count').innerText = `${listaProductos.length} Items`;
+        
+        pCont.innerHTML = listaProductos.map(p => `
+            <div onclick="prepararEdicion(${p.id})" 
+                 class="flex items-center justify-between bg-black/40 p-4 rounded-3xl border border-white/5 group hover:border-[#ff6b00]/50 hover:bg-black/60 transition-all cursor-pointer">
+                
+                <div class="flex items-center gap-4 min-w-0">
+                    <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 border border-white/10">
+                        <img src="${p.img}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100/1a1a1a/555?text=?'">
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="font-bold text-white text-sm truncate">${p.nombre}</p>
+                        <p class="text-[10px] text-[#ff6b00] font-black tracking-widest uppercase mt-0.5">
+                            $ ${p.precio.toLocaleString()}
+                        </p>
+                    </div>
                 </div>
-                <div class="overflow-hidden">
-                    <p class="font-bold text-white text-sm truncate">${p.nombre}</p>
-                    <p class="text-[10px] text-[#ff6b00] font-black tracking-widest uppercase mt-0.5">
-    $ ${p.precio.toLocaleString()}
-</p>
+
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-gray-600 opacity-0 group-hover:opacity-100 transition-all uppercase font-bold">Editar</span>
+                    <button onclick="event.stopPropagation(); borrarProd(${p.id})" 
+                            class="text-gray-700 hover:text-red-500 p-3 rounded-full hover:bg-red-500/10 transition-all flex-shrink-0">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
                 </div>
             </div>
+        `).join('');
+    }
 
-            <div class="flex items-center gap-2">
-                <span class="text-[10px] text-gray-600 opacity-0 group-hover:opacity-100 transition-all uppercase font-bold">Editar</span>
-                <button onclick="event.stopPropagation(); borrarProd(${p.id})" 
-                        class="text-gray-700 hover:text-red-500 p-3 rounded-full hover:bg-red-500/10 transition-all flex-shrink-0">
-                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+    // --- 2. RENDER DE ZONAS DE ENVÍO ---
+    const zCont = document.getElementById('lista-zonas');
+    if (zCont) {
+        zCont.innerHTML = listaZonas.map(z => `
+            <div class="bg-black/40 p-4 rounded-3xl border border-white/5 flex justify-between items-center group hover:border-[#ff6b00]/30 transition-all">
+                <div>
+                    <p class="text-sm font-bold text-white">${z.nombre}</p>
+                    <p class="text-[10px] text-[#ff6b00] font-black tracking-widest uppercase mt-0.5">
+                        $ ${z.costo.toLocaleString()}
+                    </p>
+                </div>
+                <button onclick="borrarZona(${z.id})" 
+                        class="text-gray-700 hover:text-red-500 p-2 rounded-full hover:bg-red-500/10 transition-all">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
                 </button>
             </div>
-        </div>
-    `).join('');
+        `).join('');
+    }
 
+    // Actualizar iconos de Lucide en toda la pantalla
     lucide.createIcons();
 }
 
@@ -644,6 +724,39 @@ function cancelarEdicion() {
     btnSave.classList.replace('bg-blue-500', 'bg-[#ff6b00]');
     document.getElementById('btn-cancel-edit').classList.add('hidden');
 }
+
+function borrarZona(id) {
+    Swal.fire({
+        title: '¿Eliminar zona?',
+        text: "El costo de envío dejará de aplicarse.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ff6b00',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, borrar',
+        background: '#1a1a1a',
+        color: '#fff'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Filtramos la lista localmente
+            listaZonas = listaZonas.filter(z => z.id !== id);
+            
+            // Sincronizamos con Firebase
+            db.ref('zonas').set(listaZonas)
+                .then(() => {
+                    Swal.fire({
+                        title: 'Eliminado',
+                        icon: 'success',
+                        timer: 1000,
+                        showConfirmButton: false,
+                        background: '#1a1a1a',
+                        color: '#fff'
+                    });
+                });
+        }
+    });
+}
+
     </script>
 </body>
 </html>

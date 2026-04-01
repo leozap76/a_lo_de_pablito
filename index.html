@@ -286,35 +286,51 @@ fbq('track', 'PageView');
         });
 
        function cargarTodoDesdeNube() {
-    // 1. ESCUCHAR CONFIGURACIÓN (Nombre, Teléfono, Horarios)
+    // 1. VALORES POR DEFECTO (Se ejecutan apenas carga la página)
+    // Esto evita que salga "undefined" mientras esperamos a Firebase
+    window.TIENDA_CONFIG = {
+        nombre: "Cargando...",
+        telefono: "",
+        moneda: "$", // <-- Símbolo fijo aquí para evitar errores
+        horario: {
+            turno1: { apertura: "00:00", cierre: "00:00" },
+            turno2: { apertura: "00:00", cierre: "00:00" }
+        }
+    };
+
+    // 2. ESCUCHAR CONFIGURACIÓN (Nombre, Teléfono, Horarios)
     db.ref('config').on('value', (snapshot) => {
         const configNube = snapshot.val();
         if (configNube) {
-            window.TIENDA_CONFIG = configNube; // Actualiza la variable global
+            // Unimos los valores por defecto con los que vienen de la nube
+            window.TIENDA_CONFIG = { ...window.TIENDA_CONFIG, ...configNube };
 
             // Actualizar Nombre en el H1
             const elNombre = document.getElementById('store-name');
             if (elNombre) elNombre.innerText = configNube.nombre;
 
             // Actualizar el Badge de Estado (Abierto/Cerrado)
-            // Esto vuelve a calcular si está abierto con los nuevos horarios de la nube
             if (typeof actualizarEstadoTienda === 'function') {
                 actualizarEstadoTienda();
             }
+            
+            // Si tenés una función que renderiza el carrito, la llamamos 
+            // para que actualice la moneda si estaba abierta
+            if (typeof renderCarrito === 'function') renderCarrito();
 
             console.log("Configuración de la nube aplicada:", configNube.nombre);
         }
     });
 
-    // 2. ESCUCHAR PRODUCTOS
+    // 3. ESCUCHAR PRODUCTOS
     db.ref('productos').on('value', (snapshot) => {
         const data = snapshot.val();
-        // Convertimos el objeto de Firebase en Array para que el catálogo lo entienda
-        productos = data ? Object.values(data) : [];
+        // Convertimos a Array y lo guardamos en la variable que usa tu catálogo
+        productos = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
         
         console.log("Productos cargados:", productos.length);
 
-        // Renderizamos la interfaz
+        // Renderizamos la interfaz según la función que use tu app
         if (typeof renderProductos === 'function') {
             renderProductos(); 
         } else if (typeof initApp === 'function') {
