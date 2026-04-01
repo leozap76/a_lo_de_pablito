@@ -7,10 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Poppins', sans-serif; background-color: #080808; color: #ffffff; }
@@ -183,24 +179,7 @@
             moneda: "$",
             colorPrincipal: "#ff6b00"
         };
-
-        // 1. ACÁ VA EL BLOQUE QUE ME PASASTE
-    const firebaseConfig = {
-        apiKey: "AIzaSyAzi6h9W6S5s3tdv-TDhkiE5v3ltivsxWo",
-        authDomain: "menuya-app.firebaseapp.com",
-        databaseURL: "https://menuya-app-default-rtdb.firebaseio.com",
-        projectId: "menuya-app",
-        storageBucket: "menuya-app.firebasestorage.app",
-        messagingSenderId: "481814790231",
-        appId: "1:481814790231:web:2a68b7f8d93de020a8e312",
-        measurementId: "G-KX859G1F3Q"
-    };
-
-    // 2. INICIALIZÁS EL MOTOR
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-     let listaProductos = [];
+        let listaProductos = JSON.parse(localStorage.getItem('crazy_productos')) || [];
         let listaZonas = JSON.parse(localStorage.getItem('crazy_zonas')) || [];
 
         function checkPass() {
@@ -257,35 +236,11 @@
             e.target.reset();
         });
 
-        // --- CONEXIÓN CON LA NUBE (FIREBASE) ---
         function saveData() {
-            // Guardamos los productos en la nube
-            db.ref('productos').set(listaProductos)
-              .then(() => console.log("Sincronizado con Firebase"))
-              .catch(err => console.error("Error al guardar:", err));
-            
-            // Las zonas por ahora las seguimos guardando localmente como tenías
+            localStorage.setItem('crazy_productos', JSON.stringify(listaProductos));
             localStorage.setItem('crazy_zonas', JSON.stringify(listaZonas));
-            
             renderUI();
         }
-
-        function loadData() {
-            // Escuchamos la nube en tiempo real
-            db.ref('productos').on('value', (snapshot) => {
-                const data = snapshot.val();
-                listaProductos = data || [];
-                
-                // Si el admin ya pasó la pantalla de login, actualizamos la lista
-                if (!document.getElementById('admin-content').classList.contains('hidden')) {
-                    renderUI();
-                }
-            });
-        }
-
-        // Ejecutamos la carga inicial
-        loadData();
-        // ---------------------------------------
 
 function agregarProducto() {
     const name = document.getElementById('prodName').value;

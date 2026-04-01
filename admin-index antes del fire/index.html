@@ -237,50 +237,11 @@ fbq('track', 'PageView');
     </div>
 </div>
 
-   <script src="js/data.js"></script>
+    <script src="js/data.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/cart.js"></script>
-
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
-
     <script>
-        // Inicializamos Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyAzi6h9W6S5s3tdv-TDhkiE5v3ltivsxWo",
-            authDomain: "menuya-app.firebaseapp.com",
-            databaseURL: "https://menuya-app-default-rtdb.firebaseio.com",
-            projectId: "menuya-app",
-            storageBucket: "menuya-app.firebasestorage.app",
-            messagingSenderId: "481814790231",
-            appId: "1:481814790231:web:2a68b7f8d93de020a8e312",
-            measurementId: "G-KX859G1F3Q"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // Función para escuchar la base de datos
-        function cargarMenuDesdeNube() {
-            db.ref('productos').on('value', (snapshot) => {
-                const data = snapshot.val();
-                
-                // ACÁ ESTÁ EL CAMBIO CLAVE: usamos "productos"
-                productos = data || []; 
-                
-                // Actualizamos la pantalla
-                if (typeof renderProductos === 'function') {
-                    renderProductos(); 
-                } else {
-                    initApp(); 
-                }
-            });
-        }
-
-        // 4. INICIO DE LA APP
-        document.addEventListener('DOMContentLoaded', () => {
-            initApp();             // Arranca tu app normal
-            cargarMenuDesdeNube(); // Empieza a escuchar los cambios en vivo
-        });
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
