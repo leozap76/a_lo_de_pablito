@@ -322,10 +322,22 @@ function obtenerUbicacion() {
             if (window.lucide) lucide.createIcons();
         },
         (error) => {
-                    btn.innerHTML = '<i data-lucide="map-pin" class="w-4 h-4"></i> ENVIAR MI UBICACIÓN ACTUAL';
-            if (window.lucide) lucide.createIcons();
-                    alert("No pudimos obtener la ubicación. Revisá que tu GPS esté prendido y hayas dado los permisos, o escribí la dirección a mano.");
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                btn.innerHTML = '<i data-lucide="map-pin" class="w-4 h-4"></i> ENVIAR MI UBICACIÓN ACTUAL';
+                if (window.lucide) lucide.createIcons();
+
+                const errorMsg = "No pudimos obtener la ubicación. Revisá que tu GPS esté prendido y hayas dado los permisos, o escribí la dirección a mano.";
+                if (window.Swal) {
+                    Swal.fire({
+                        text: errorMsg,
+                        icon: 'info',
+                        confirmButtonColor: '#ff6b00',
+                        background: '#1a1a1a',
+                        color: '#fff'
+                    });
+                } else {
+                    alert(errorMsg);
+                }
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
 }
