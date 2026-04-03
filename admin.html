@@ -50,12 +50,21 @@
                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Panel de Control Total
                 </p>
             </div>
+            
+      
+           
       
             <div class="flex gap-3">
+                <button onclick="generarQR()" class="bg-orange-500/10 border border-orange-500 text-orange-500 px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-orange-500 hover:text-white transition-all">
+                    <i data-lucide="qr-code" class="w-5 h-5"></i> CÓDIGO QR
+                </button>
                 
                 <button onclick="location.reload()" class="bg-white/5 p-3 rounded-2xl hover:bg-red-500/20 text-gray-500 hover:text-red-500 transition-all border border-white/5">
                     <i data-lucide="log-out"></i>
                 </button>
+
+                
+           
             </div>
         </header>
 
@@ -883,6 +892,63 @@ function borrarZona(id) {
                 });
         }
     });
+}
+
+function generarQR() {
+    // Detecta automáticamente el dominio actual (funciona para cualquier cliente)
+    const urlLocal = window.location.origin; 
+    
+    // Generamos el QR usando la API de QuickChart (Naranja #ff6b00)
+    const qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(urlLocal)}&dark=ff6b00&size=500&margin=2`;
+    
+    // Mostramos el QR con SweetAlert
+    Swal.fire({
+        title: 'CÓDIGO QR DEL MENÚ',
+        html: `
+            <p class="text-gray-400 mb-4 text-sm">Este código llevará a los clientes a:<br><b class="text-orange-500">${urlLocal}</b></p>
+            <div class="bg-white p-4 rounded-xl inline-block">
+                <img src="${qrUrl}" alt="QR" style="width: 200px; height: 200px;">
+            </div>
+        `,
+        background: '#1a1a1a',
+        color: '#fff',
+        showCancelButton: true,
+        confirmButtonText: '<i data-lucide="download" class="w-4 h-4 mr-2"></i> DESCARGAR',
+        cancelButtonText: 'CERRAR',
+        confirmButtonColor: '#ff6b00',
+        buttonsStyling: true,
+        customClass: {
+            confirmButton: 'flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold uppercase tracking-wider',
+            cancelButton: 'px-6 py-3 rounded-xl font-bold uppercase tracking-wider'
+        },
+        didOpen: () => {
+            // Renderiza el icono de Lucide dentro del botón de SweetAlert
+            if (window.lucide) lucide.createIcons();
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Lógica de descarga profesional
+            const link = document.createElement('a');
+            link.href = qrUrl;
+            link.download = 'QR_Menu_Digital.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Avisamos al usuario que se abrió la descarga
+            Swal.fire({
+                title: '¡Listo!',
+                text: 'La imagen se abrirá o descargará para que puedas imprimirla.',
+                icon: 'success',
+                confirmButtonColor: '#ff6b00',
+                background: '#1a1a1a',
+                color: '#fff'
+            });
+        }
+    });
+
+    // Renderiza iconos de Lucide generales si los hubiera
+    if (window.lucide) lucide.createIcons();
 }
 
     </script>
