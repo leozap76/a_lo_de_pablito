@@ -71,6 +71,7 @@ function finalizarPedido(datosCliente) {
     
     const inputRecibe = document.getElementById('cust-receiver');
     const inputHora = document.getElementById('cust-time');
+    const coords = document.getElementById('cust-coords')?.value;
     
     const recibe = inputRecibe && inputRecibe.value ? inputRecibe.value : nombre;
     const horaEnvio = inputHora ? inputHora.value : "Lo Antes Posible";
@@ -93,7 +94,11 @@ function finalizarPedido(datosCliente) {
         mensaje += `• *${item.cantidad}x ${item.nombre}* | $${sub.toLocaleString()}%0A`;
     });
 
-    mensaje += `%0A*Forma de Entrega*%0A• Método: Delivery%0A• Zona: ${nombreZona}%0A• Recibe: ${recibe}%0A• Dirección: ${direccion}%0A• Hora de Envío: ${horaEnvio}%0A%0A`;
+    mensaje += `%0A*Forma de Entrega*%0A• Método: Delivery%0A• Zona: ${nombreZona}%0A• Recibe: ${recibe}%0A• Dirección: ${direccion}%0A`;
+    if (coords) {
+        mensaje += `• Ubicación: https://www.google.com/maps?q=${coords}%0A`;
+    }
+    mensaje += `• Hora de Envío: ${horaEnvio}%0A%0A`;
     mensaje += `*Forma de Pago*%0A• Método: ${pago}%0A• Subtotal: $${subtotal.toLocaleString()}%0A`;
     if(costoEnvio > 0) mensaje += `• Costo Envío: $${costoEnvio.toLocaleString()}%0A`;
     

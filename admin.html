@@ -234,7 +234,7 @@
 
     <script>
         const CLAVE_ADMIN = '1234';
-        
+       
 
         // 1. ACÁ VA EL BLOQUE QUE ME PASASTE
  const firebaseConfig = {
@@ -254,6 +254,7 @@
      // 3. VARIABLES GLOBALES (Importante: inicializarlas aquí)
     let listaProductos = [];
     let listaZonas = [];
+    let editandoId = null; // Variable global para saber si estamos editando
    
 
         function checkPass() {
@@ -467,13 +468,16 @@ function agregarCategoria() {
         function loadData() {
     // 1. Escuchar PRODUCTOS en tiempo real
     db.ref('productos').on('value', (snapshot) => {
-        const data = snapshot.val();
-        // Firebase a veces devuelve un objeto, nos aseguramos de tener un array
-        listaProductos = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+        const items = [];
+        snapshot.forEach((childSnapshot) => {
+            const data = childSnapshot.val();
+            // Asignamos la key de Firebase (ej: -Nabc123) como ID del objeto local
+            data.id = childSnapshot.key;
+            items.push(data);
+        });
+        listaProductos = items;
         
-        // Actualizamos las categorías basadas en los productos descargados
         actualizarCategoriasDinamicas();
-
         actualizarPantallaSiEsVisible();
     });
 
@@ -535,12 +539,19 @@ function actualizarPantallaSiEsVisible() {
         // ---------------------------------------
 
 function agregarProducto() {
-    const name = document.getElementById('prodName').value;
-    const price = parseInt(document.getElementById('prodPrice').value);
-    const cat = document.getElementById('prodCat').value;
-    const img = document.getElementById('prodImg').value;
-    const desc = document.getElementById('prodDesc').value;
-    const opcionesStr = document.getElementById('prodOpciones').value ? document.getElementById('prodOpciones').value.trim() : "";
+    const nameInput = document.getElementById('prodName');
+    const priceInput = document.getElementById('prodPrice');
+    const catInput = document.getElementById('prodCat');
+    const imgInput = document.getElementById('prodImg');
+    const descInput = document.getElementById('prodDesc');
+    const opcionesInput = document.getElementById('prodOpciones');
+
+    const name = nameInput.value;
+    const price = parseInt(priceInput.value);
+    const cat = catInput.value;
+    const img = imgInput.value;
+    const desc = descInput.value;
+    const opcionesStr = opcionesInput.value ? opcionesInput.value.trim() : "";
 
     // 1. Validación con alerta de Error
     if (!name || isNaN(price) || !cat) {
@@ -572,7 +583,7 @@ function agregarProducto() {
         // Verificamos si estamos EDITANDO o CREANDO uno nuevo
         if (typeof editandoId !== 'undefined' && editandoId !== null) {
             // ---- MODO EDICIÓN ----
-            const index = listaProductos.findIndex(p => p.id === editandoId);
+            const index = listaProductos.findIndex(p => String(p.id) === String(editandoId));
             if (index !== -1) {
                 listaProductos[index].nombre = name;
                 listaProductos[index].precio = price;
@@ -581,14 +592,6 @@ function agregarProducto() {
                 listaProductos[index].desc = desc;
                 listaProductos[index].opciones = opcionesArray.length > 0 ? opcionesArray : null;
             }
-
-            // Restaurar estado del botón
-            const btnSave = document.getElementById('btn-save-prod');
-            if (btnSave) {
-                btnSave.innerText = "GUARDAR PLATO";
-                btnSave.style.backgroundColor = "#ff6b00";
-            }
-            editandoId = null; // Reseteamos la variable de edición
 
             // Alerta de Edición exitosa
             Swal.fire({
@@ -632,13 +635,8 @@ function agregarProducto() {
         // Guardamos los datos y refrescamos la pantalla
         saveData();
 
-        // Limpiar inputs
-        document.getElementById('prodName').value = '';
-        document.getElementById('prodPrice').value = '';
-        document.getElementById('prodCat').value = '🍔 Combos'; // Vuelve a la categoría por defecto
-        document.getElementById('prodImg').value = '';
-        document.getElementById('prodDesc').value = '';
-        if(document.getElementById('prodOpciones')) document.getElementById('prodOpciones').value = '';
+        // Limpiar y resetear estado
+        cancelarEdicion();
 
     } catch (error) {
         // 3. Alerta de Fallo Técnico
@@ -660,25 +658,25 @@ function agregarProducto() {
     if (pCont) {
         document.getElementById('prod-count').innerText = `${listaProductos.length} Items`;
         
-        pCont.innerHTML = listaProductos.map(p => `
-            <div onclick="prepararEdicion(${p.id})" 
+        pCont.innerHTML = listaProductos.map(producto => `
+            <div onclick="editarProducto('${producto.id}')" 
                  class="flex items-center justify-between bg-black/40 p-4 rounded-3xl border border-white/5 group hover:border-[#ff6b00]/50 hover:bg-black/60 transition-all cursor-pointer">
                 
                 <div class="flex items-center gap-4 min-w-0">
                     <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 border border-white/10">
-                        <img src="${p.img}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100/1a1a1a/555?text=?'">
+                        <img src="${producto.img}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/100x100/1a1a1a/555?text=?'">
                     </div>
                     <div class="overflow-hidden">
-                        <p class="font-bold text-white text-sm truncate">${p.nombre}</p>
+                        <p class="font-bold text-white text-sm truncate">${producto.nombre}</p>
                         <p class="text-[10px] text-[#ff6b00] font-black tracking-widest uppercase mt-0.5">
-                            $ ${p.precio.toLocaleString()}
+                            $ ${producto.precio.toLocaleString()}
                         </p>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-2">
                     <span class="text-[10px] text-gray-600 opacity-0 group-hover:opacity-100 transition-all uppercase font-bold">Editar</span>
-                    <button onclick="event.stopPropagation(); borrarProd(${p.id})" 
+                    <button onclick="event.stopPropagation(); borrarProducto('${producto.id}')" 
                             class="text-gray-700 hover:text-red-500 p-3 rounded-full hover:bg-red-500/10 transition-all flex-shrink-0">
                         <i data-lucide="trash-2" class="w-5 h-5"></i>
                     </button>
@@ -722,8 +720,7 @@ function renderCategorias() {
 // Llamá a esta función al cargar la página
 renderCategorias();
 
-
-        function borrarProd(id) {
+        function borrarProducto(id) {
             if(confirm("¿Seguro que quieres quitar este plato del menú?")) {
                 listaProductos = listaProductos.filter(p => p.id !== id);
                 saveData();
@@ -810,34 +807,37 @@ function importarData(input) {
 
         lucide.createIcons();
 
-        // Variable global para saber si estamos editando
-let editandoId = null;
-
-function prepararEdicion(id) {
-    const p = listaProductos.find(item => item.id === id);
+function editarProducto(id) {
+    const p = listaProductos.find(item => String(item.id) === String(id));
     if (!p) return;
 
-    editandoId = id;
+    editandoId = p.id;
     
     // Mapeo de datos al formulario
     document.getElementById('prodName').value = p.nombre;
     document.getElementById('prodPrice').value = p.precio;
-    document.getElementById('prodCat').value = p.categoria;
+    document.getElementById('prodCat').value = p.categoria ? p.categoria.toLowerCase() : "";
     document.getElementById('prodImg').value = p.img;
     document.getElementById('prodDesc').value = p.desc || "";
     
     // Convertir opciones de array a texto para el input
-    if (p.opciones) {
+    if (p.opciones && Array.isArray(p.opciones)) {
         document.getElementById('prodOpciones').value = p.opciones.map(o => `${o.nombre}:${o.precio}`).join(', ');
     } else {
         document.getElementById('prodOpciones').value = "";
     }
 
     // Feedback visual en el botón de guardado
-    const btnSave = document.querySelector("button[onclick='agregarProducto()']");
-    btnSave.innerText = "ACTUALIZAR CAMBIOS";
-    btnSave.style.backgroundColor = "#2563eb"; // Azul para modo edición
+    const btnSave = document.getElementById('btn-save-prod');
+    if (btnSave) {
+        btnSave.innerText = "ACTUALIZAR CAMBIOS";
+        btnSave.style.backgroundColor = "#2563eb"; // Azul para modo edición
+    }
     
+    // Mostrar botón de cancelar
+    const btnCancel = document.getElementById('btn-cancel-edit');
+    if (btnCancel) btnCancel.classList.remove('hidden');
+
     // Scroll automático al formulario para editar rápido
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -847,8 +847,10 @@ function cancelarEdicion() {
     document.getElementById('product-form').reset();
     const btnSave = document.getElementById('btn-save-prod');
     btnSave.innerText = "GUARDAR PLATO";
-    btnSave.classList.replace('bg-blue-500', 'bg-[#ff6b00]');
-    document.getElementById('btn-cancel-edit').classList.add('hidden');
+    btnSave.style.backgroundColor = "#ff6b00";
+    
+    const btnCancel = document.getElementById('btn-cancel-edit');
+    if (btnCancel) btnCancel.classList.add('hidden');
 }
 
 function borrarZona(id) {

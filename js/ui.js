@@ -298,3 +298,33 @@ function actualizarTotalConEnvio() {
         displayTotal.textContent = `$ ${(subtotal + costoEnvio).toLocaleString()}`;
     }
 }
+
+function obtenerUbicacion() {
+    const btn = document.getElementById('btn-location');
+    const coordsInput = document.getElementById('cust-coords');
+
+    if (!navigator.geolocation) {
+        alert("Tu navegador no soporta geolocalización.");
+        return;
+    }
+
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> OBTENIENDO...';
+    if (window.lucide) lucide.createIcons();
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            coordsInput.value = `${lat},${lng}`;
+            btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> UBICACIÓN OBTENIDA';
+            btn.classList.replace('text-orange-500', 'text-green-500');
+            btn.classList.replace('border-orange-500/30', 'border-green-500/30');
+            if (window.lucide) lucide.createIcons();
+        },
+        (error) => {
+            btn.innerHTML = '<i data-lucide="map-pin" class="w-4 h-4"></i> REINTENTAR UBICACIÓN';
+            if (window.lucide) lucide.createIcons();
+            alert("No se pudo obtener la ubicación. Por favor, asegúrate de dar permisos o escríbela manualmente.");
+        }
+    );
+}
