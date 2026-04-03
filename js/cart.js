@@ -79,8 +79,10 @@ function finalizarPedido(datosCliente) {
     const ahora = new Date();
     const fechaHora = `${ahora.getHours()}:${ahora.getMinutes().toString().padStart(2, '0')} ${ahora.getDate()}/${ahora.getMonth()+1}/${ahora.getFullYear()}`;
 
-    const zoneSelect = document.getElementById('cust-zone');
-    const costoEnvio = zoneSelect ? parseInt(zoneSelect.options[zoneSelect.selectedIndex].getAttribute('data-costo') || 0) : 0;
+    const zoneSelect = document.getElementById('delivery-zone');
+    const selectedOption = zoneSelect ? zoneSelect.options[zoneSelect.selectedIndex] : null;
+    const costoEnvio = selectedOption ? parseInt(selectedOption.getAttribute('data-costo') || 0) : 0;
+    const nombreZona = (zoneSelect && zoneSelect.selectedIndex > 0) ? selectedOption.text.split(' (')[0] : "No especificada";
 
     let mensaje = `*NUEVO PEDIDO - ${TIENDA_CONFIG.nombre}*%0AOrden Nº *${nroPedido}* | ${fechaHora}%0A--------------------------%0A%0A`;
     
@@ -91,9 +93,9 @@ function finalizarPedido(datosCliente) {
         mensaje += `• *${item.cantidad}x ${item.nombre}* | $${sub.toLocaleString()}%0A`;
     });
 
-    mensaje += `%0A*Forma de Entrega*%0A• Método: Delivery%0A• Recibe: ${recibe}%0A• Dirección: ${direccion}%0A• Hora de Envío: ${horaEnvio}%0A%0A`;
+    mensaje += `%0A*Forma de Entrega*%0A• Método: Delivery%0A• Zona: ${nombreZona}%0A• Recibe: ${recibe}%0A• Dirección: ${direccion}%0A• Hora de Envío: ${horaEnvio}%0A%0A`;
     mensaje += `*Forma de Pago*%0A• Método: ${pago}%0A• Subtotal: $${subtotal.toLocaleString()}%0A`;
-    if(costoEnvio > 0) mensaje += `• Envío: $${costoEnvio.toLocaleString()}%0A`;
+    if(costoEnvio > 0) mensaje += `• Costo Envío: $${costoEnvio.toLocaleString()}%0A`;
     
     const totalFinal = subtotal + costoEnvio;
     mensaje += `*TOTAL DEL PEDIDO: $${totalFinal.toLocaleString()}*%0A--------------------------%0A`;

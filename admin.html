@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel | MenuYa</title>
+    <title>Admin Panel | ALoDePablito</title>
+
+     <link rel="apple-touch-icon" href="https://i.ibb.co/R4Zmy1Ps/logo.webp">
+<link rel="icon" type="image/png" href="https://i.ibb.co/R4Zmy1Ps/logo.webp">
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -30,7 +34,7 @@
         <div class="mb-6 crazy-gradient w-20 h-20 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-orange-500/20">
             <i data-lucide="lock" class="text-black w-10 h-10"></i>
         </div>
-        <h1 class="text-3xl font-brand text-[#ff6b00] mb-2 uppercase tracking-wider">MenúYa Admin</h1>
+        <h1 class="text-3xl font-brand text-[#ff6b00] mb-2 uppercase tracking-wider">ALoDePablito Admin</h1>
         <p class="text-gray-400 text-sm mb-8">Gestión de menú, envíos y marca</p>
         <input type="password" id="admin-pass" placeholder="••••" class="w-full p-4 rounded-2xl text-center text-2xl tracking-widest mb-6">
         <button onclick="checkPass()" class="w-full crazy-gradient text-black py-4 rounded-2xl font-black hover:scale-[1.02] transition-all">ACCEDER AL PANEL</button>
@@ -46,13 +50,7 @@
                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Panel de Control Total
                 </p>
             </div>
-            <div class="mt-4 p-4 border border-dashed border-white/20 rounded-xl">
-    <p class="text-xs text-gray-400 mb-2 font-bold uppercase">Actualizar menú existente:</p>
-    <input type="file" id="importFile" accept=".js" class="hidden" onchange="importarData(this)">
-    <button onclick="document.getElementById('importFile').click()" class="text-xs bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-all">
-        Subir mi data.js actual
-    </button>
-</div>
+      
             <div class="flex gap-3">
                 <button onclick="descargarDataJS()" class="crazy-gradient text-black px-6 py-3 rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-orange-500/10 hover:scale-105 transition-all">
                     <i data-lucide="save" class="w-5 h-5"></i> SINCRONIZAR
@@ -63,7 +61,7 @@
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8" id="admin-dashboard-content">
             
             <!-- Columna Izquierda: Configuraciones y Formularios -->
             <div class="lg:col-span-4 space-y-8">
@@ -122,18 +120,44 @@
                         <!-- Selector de Imagen -->
                         <div class="space-y-4">
     <input type="text" id="prodName" placeholder="Nombre del Plato (Ej: Pizza Muzzarella)" class="w-full bg-[#1a1a1a] border border-white/5 rounded-xl px-4 py-3 text-sm focus:border-[#ff6b00] outline-none text-white">
-    <div class="grid grid-cols-2 gap-4">
-        <input type="number" id="prodPrice" placeholder="Precio Base ($)" class="w-full bg-[#1a1a1a] border border-white/5 rounded-xl px-4 py-3 text-sm focus:border-[#ff6b00] outline-none text-white">
-       <select id="prodCat" class="w-full ...">
-    <option value="" disabled selected>Cargando categorías...</option>
-    <div class="flex gap-2">
-    <input type="text" id="nueva-cat" placeholder="Nueva Categoría" class="w-2/3 p-2 rounded-xl text-xs">
-    <button onclick="agregarCategoria()" class="w-1/3 bg-green-600 text-white rounded-xl text-[10px] font-bold">AÑADIR</button>
-</div>
-</select>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="w-full">
+            <label class="text-[10px] text-gray-500 font-bold uppercase ml-1 tracking-widest">Precio Base ($)</label>
+            <input type="number" id="prodPrice" placeholder="0" class="w-full bg-[#1a1a1a] border border-white/5 rounded-xl px-4 py-3 lg:py-4 text-sm lg:text-base focus:border-[#ff6b00] outline-none text-white mt-1 shadow-inner">
+        </div>
+        <div class="w-full">
+            <label class="text-[10px] text-gray-500 font-bold uppercase ml-1 tracking-widest">Categoría Existente</label>
+            <select id="prodCat" class="w-full bg-[#1a1a1a] border border-white/5 rounded-xl px-4 py-3 lg:py-4 text-sm lg:text-base focus:border-[#ff6b00] outline-none text-white mt-1 appearance-none cursor-pointer">
+                <option value="" disabled selected>Cargando...</option>
+            </select>
+        </div>
     </div>
-    <input type="text" id="prodImg" placeholder="URL de la imagen (Ej: img/pizza.webp)" class="w-full bg-[#1a1a1a] border border-white/5 rounded-xl px-4 py-3 text-sm focus:border-[#ff6b00] outline-none text-white">
-    
+
+    <!-- Zona de Añadir Categoría Optimizada -->
+    <div class="bg-black/40 p-4 lg:p-6 rounded-[1.5rem] border border-white/5 mt-2 shadow-inner">
+        <label class="text-[10px] text-[#22c55e] font-bold uppercase ml-1 tracking-widest mb-2 block">¿No está la categoría? Créala aquí</label>
+        <div class="flex flex-col sm:flex-row gap-3">
+            <input type="text" id="nueva-cat" placeholder="Ej: Minutas o Postres" 
+                   class="flex-grow bg-[#1a1a1a] border border-white/5 rounded-xl px-4 py-3 lg:py-4 text-sm lg:text-base focus:border-[#22c55e] outline-none text-white transition-all">
+            <button type="button" onclick="agregarCategoria()" 
+                    class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 lg:py-4 rounded-xl text-xs lg:text-sm font-black transition-all shadow-lg shadow-green-900/40 active:scale-95 whitespace-nowrap uppercase tracking-widest">
+                AÑADIR
+            </button>
+        </div>
+    </div>
+
+    <div class="space-y-2">
+        <label class="text-[10px] text-gray-500 font-bold uppercase ml-1 tracking-widest block">URL de la Imagen</label>
+        <div class="flex gap-2">
+            <input type="text" id="prodImg" placeholder="URL de la imagen..." 
+                   class="flex-grow bg-[#1a1a1a] border border-white/5 rounded-xl px-4 py-3 text-sm focus:border-[#ff6b00] outline-none text-white">
+            <button type="button" onclick="verFoto()" class="bg-white/10 hover:bg-white/20 text-white px-4 py-3 rounded-xl cursor-pointer transition-all flex items-center justify-center border border-white/5 group active:scale-95">
+                <i data-lucide="eye" class="w-5 h-5 group-hover:text-[#ff6b00]"></i>
+            </button>
+        </div>
+        <p class="text-[9px] text-gray-500 ml-1 italic">Subí tu foto a imgbb.com y pegá aquí el Enlace Directo.</p>
+    </div>
+
     <div>
     <label class="block text-[11px] font-bold text-[#ff6b00] uppercase tracking-widest mb-2 ml-1">Opciones / Variantes (Opcional)</label>
     <input type="text" id="prodOpciones" placeholder="Ej: Media docena:5000, Docena:9000" class="w-full bg-[#1a1a1a] p-4 rounded-2xl border border-white/5 text-white focus:outline-none focus:border-[#ff6b00]">
@@ -156,26 +180,32 @@
                 </section>
 
                 <!-- 3. Form Zonas -->
-         <section class="bg-[#1a1a1a] p-8 rounded-[2.5rem] border border-white/5 shadow-xl">
+      <section class="bg-[#1a1a1a] p-8 rounded-[2.5rem] border border-white/5 shadow-xl">
     <h2 class="text-xl font-bold mb-6 flex items-center gap-3">
         <i data-lucide="truck" class="text-[#ff6b00]"></i> Zonas de Envío
     </h2>
-    <form id="zone-form" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
-            <div>
-                <label class="text-[10px] text-gray-500 font-bold uppercase ml-1">Nombre del Barrio/Zona</label>
-                <input type="text" id="z-nombre" placeholder="Ej: Zona Centro" class="w-full p-4 rounded-2xl mt-1" required>
+    <form id="zone-form" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            
+            <div class="md:col-span-7">
+                <label class="text-[10px] text-gray-500 font-bold uppercase ml-1 tracking-widest">Nombre del Barrio / Zona</label>
+                <input type="text" id="z-nombre" placeholder="Ej: Zona Centro o Km 3" 
+                       class="w-full p-4 rounded-2xl mt-2 bg-black/20 border border-white/10 focus:border-[#ff6b00] outline-none transition-all" required>
             </div>
-            <div>
-                <label class="text-[10px] text-gray-500 font-bold uppercase ml-1">Costo ($)</label>
-                <input type="number" id="z-costo" placeholder="0" class="w-full p-4 rounded-2xl mt-1" required>
+
+            <div class="md:col-span-5">
+                <label class="text-[10px] text-gray-500 font-bold uppercase ml-1 tracking-widest">Costo de Envío ($)</label>
+                <input type="number" id="z-costo" placeholder="0" 
+                       class="w-full p-4 rounded-2xl mt-2 bg-black/20 border border-white/10 focus:border-[#ff6b00] outline-none transition-all" required>
             </div>
+            
         </div>
-        <button type="submit" class="w-full bg-[#ff6b00]/10 hover:bg-[#ff6b00] text-[#ff6b00] hover:text-black py-4 rounded-2xl font-black border border-[#ff6b00]/20 transition-all uppercase tracking-widest text-xs mt-2">
-            + Añadir Zona de Entrega
+
+        <button type="submit" class="w-full bg-[#ff6b00] text-black py-5 rounded-2xl font-black border border-[#ff6b00] hover:bg-transparent hover:text-[#ff6b00] transition-all uppercase tracking-[0.2em] text-xs shadow-[0_0_20px_rgba(255,107,0,0.2)]">
+            + Añadir Nueva Zona de Entrega
         </button>
     </form>
-</section>  
+</section> 
             </div>
 
             <!-- Columna Derecha: Listados -->
@@ -207,39 +237,32 @@
     <script>
         const CLAVE_ADMIN = '1234';
         
-        // Estado inicial
-        let config = JSON.parse(localStorage.getItem('crazy_config')) || {
-            nombre: "Menu Ya",
-            whatsapp: "542657780645",
-            moneda: "$",
-            colorPrincipal: "#ff6b00"
-        };
 
         // 1. ACÁ VA EL BLOQUE QUE ME PASASTE
-    const firebaseConfig = {
-        apiKey: "AIzaSyAzi6h9W6S5s3tdv-TDhkiE5v3ltivsxWo",
-        authDomain: "menuya-app.firebaseapp.com",
-        databaseURL: "https://menuya-app-default-rtdb.firebaseio.com",
-        projectId: "menuya-app",
-        storageBucket: "menuya-app.firebasestorage.app",
-        messagingSenderId: "481814790231",
-        appId: "1:481814790231:web:2a68b7f8d93de020a8e312",
-        measurementId: "G-KX859G1F3Q"
+ const firebaseConfig = {
+        apiKey: "AIzaSyALQvj5eTB6j-qheLn-1R4S_r3fUnRys7c",
+        authDomain: "delivery-san-carlos.firebaseapp.com",
+        databaseURL: "https://delivery-san-carlos-default-rtdb.firebaseio.com",
+        projectId: "delivery-san-carlos",
+        storageBucket: "delivery-san-carlos.firebasestorage.app",
+        messagingSenderId: "66338904091",
+        appId: "1:66338904091:web:f346aeb950955742b340be"
     };
 
     // 2. INICIALIZÁS EL MOTOR
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-     let listaProductos = [];
-        let listaZonas = JSON.parse(localStorage.getItem('crazy_zonas')) || [];
+     // 3. VARIABLES GLOBALES (Importante: inicializarlas aquí)
+    let listaProductos = [];
+    let listaZonas = [];
+   
 
         function checkPass() {
             const pass = document.getElementById('admin-pass').value;
             if(pass === CLAVE_ADMIN) {
                 document.getElementById('admin-login').classList.add('hidden');
                 document.getElementById('admin-content').classList.remove('hidden');
-                loadConfig();
                 renderUI();
             } else {
                 const err = document.getElementById('login-error');
@@ -248,17 +271,45 @@
             }
         }
 
-        // --- GESTIÓN DE CONFIGURACIÓN ---
-        function loadConfig() {
-            document.getElementById('conf-nombre').value = config.nombre;
-            document.getElementById('conf-whatsapp').value = config.whatsapp;
-            document.getElementById('display-store-name').innerText = config.nombre;
+        // --- FUNCIÓN PARA VER LA FOTO ---
+        function verFoto() {
+            const imageUrl = document.getElementById('prodImg').value;
+            if (imageUrl) {
+                Swal.fire({
+                    title: 'Vista Previa de la Imagen',
+                    imageUrl: imageUrl,
+                    imageAlt: 'Imagen del producto',
+                    imageWidth: '80%', // Ajusta según necesites
+                    imageHeight: 'auto',
+                    showConfirmButton: false,
+                    showCloseButton: true,
+                    background: '#1a1a1a',
+                    color: '#fff',
+                    customClass: {
+                        popup: 'rounded-2xl',
+                        image: 'rounded-xl'
+                    }
+                });
+            } else {
+                Swal.fire({
+                    title: '¡Ups!',
+                    text: 'No hay URL de imagen para mostrar. Pega un enlace en el campo de texto.',
+                    icon: 'info',
+                    background: '#1a1a1a',
+                    color: '#fff',
+                    confirmButtonColor: '#ff6b00'
+                });
+            }
         }
 
+
  function saveConfig() {
+    const nombreInput = document.getElementById('conf-nombre').value;
+    const whatsappInput = document.getElementById('conf-whatsapp').value;
+
     const nuevaConfig = {
-        nombre: document.getElementById('conf-nombre').value.toUpperCase(),
-        telefono: document.getElementById('conf-whatsapp').value,
+        nombre: nombreInput.toUpperCase(),
+        telefono: whatsappInput,
         horario: {
             turno1: { 
                 apertura: document.getElementById('apertura1').value || "11:00", 
@@ -271,23 +322,80 @@
         }
     };
 
-    // Guardar en Firebase sin mostrar alertas (para que sea fluido)
+    // Guardar en Firebase
     db.ref('config').set(nuevaConfig)
         .then(() => {
-            console.log("Configuración actualizada automáticamente");
-            // Actualizamos el nombre arriba en tiempo real
-            document.getElementById('display-store-name').innerText = nuevaConfig.nombre;
+            console.log("Configuración actualizada");
+            
+            // 1. Actualizamos el nombre en la interfaz del admin
+            if (document.getElementById('display-store-name')) {
+                document.getElementById('display-store-name').innerText = nuevaConfig.nombre;
+            }
+
+            // 2. DISPARAR CARTEL DE ÉXITO (SweetAlert2)
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: '¡Datos actualizados!',
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                background: '#1a1a1a',
+                color: '#fff',
+                iconColor: '#ff6b00'
+            });
         })
-        .catch(err => console.error("Error al auto-guardar:", err));
+        .catch(err => {
+            console.error("Error al guardar:", err);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al guardar',
+                text: 'Hubo un problema con la base de datos.',
+                background: '#1a1a1a',
+                color: '#fff'
+            });
+        });
 }
 
 function agregarCategoria() {
-    const nombre = document.getElementById('nueva-cat').value.trim();
-    if (nombre && !categoriasActivas.includes(nombre)) {
-        categoriasActivas.push(nombre);
-        // Opcional: Guardar categoriasActivas en Firebase (db.ref('categorias').set(...))
-        renderCategorias();
-        document.getElementById('nueva-cat').value = '';
+    const input = document.getElementById('nueva-cat');
+    const nombre = input.value.trim();
+    
+    if (nombre) {
+        // Normalizamos el texto (Primera letra mayúscula para que el menú sea uniforme)
+        const catNormalizada = nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase();
+        
+        if (!categoriasActivas.includes(catNormalizada)) {
+            categoriasActivas.push(catNormalizada);
+            renderCategorias();
+            input.value = '';
+            
+            // Notificación Toast de éxito
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: `Categoría "${catNormalizada}" añadida`,
+                showConfirmButton: false,
+                timer: 2500,
+                timerProgressBar: true,
+                background: '#1a1a1a',
+                color: '#fff',
+                iconColor: '#22c55e'
+            });
+        } else {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'info',
+                title: 'La categoría ya existe',
+                showConfirmButton: false,
+                timer: 2000,
+                background: '#1a1a1a',
+                color: '#fff'
+            });
+        }
     }
 }
 
@@ -365,6 +473,9 @@ function agregarCategoria() {
         // Firebase a veces devuelve un objeto, nos aseguramos de tener un array
         listaProductos = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
         
+        // Actualizamos las categorías basadas en los productos descargados
+        actualizarCategoriasDinamicas();
+
         actualizarPantallaSiEsVisible();
     });
 
@@ -387,13 +498,30 @@ function agregarCategoria() {
             
             // Si tenés los inputs de horario, los llena también
             if (c.horario) {
-                if(document.getElementById('apertura1')) document.getElementById('apertura1').value = c.horario.turno1.apertura;
-                if(document.getElementById('cierre1')) document.getElementById('cierre1').value = c.horario.turno1.cierre;
-                if(document.getElementById('apertura2')) document.getElementById('apertura2').value = c.horario.turno2.apertura;
-                if(document.getElementById('cierre2')) document.getElementById('cierre2').value = c.horario.turno2.cierre;
+                const h = c.horario;
+                if(document.getElementById('apertura1')) document.getElementById('apertura1').value = h.turno1?.apertura || "11:00";
+                if(document.getElementById('cierre1')) document.getElementById('cierre1').value = h.turno1?.cierre || "15:00";
+                if(document.getElementById('apertura2')) document.getElementById('apertura2').value = h.turno2?.apertura || "20:00";
+                if(document.getElementById('cierre2')) document.getElementById('cierre2').value = h.turno2?.cierre || "02:00";
             }
         }
     });
+}
+
+function actualizarCategoriasDinamicas() {
+    // Categorías base que siempre queremos que aparezcan
+    const baseCats = ['Pizzas', 'Empanadas', 'Bebidas'];
+    
+    // Extraemos las categorías de los productos reales
+    const productCats = listaProductos.map(p => p.categoria).filter(c => c);
+
+    // Función para normalizar (Primera letra Mayúscula, resto minúscula)
+    const capitalize = (s) => s.trim().charAt(0).toUpperCase() + s.trim().slice(1).toLowerCase();
+
+    // Unimos base + productos, normalizamos y quitamos duplicados
+    categoriasActivas = [...new Set([...baseCats, ...productCats].map(capitalize))];
+    
+    renderCategorias();
 }
 
 // Función auxiliar para no repetir código

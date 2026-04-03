@@ -6,8 +6,8 @@
     <title>Digitallab - Catálogo Digital</title>
     
 
-    <link rel="apple-touch-icon" href="img/favicon-menuya2.webp">
-<link rel="icon" type="image/png" href="img/favicon-menuya2.webp">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/R4Zmy1Ps/logo.webp">
+<link rel="icon" type="image/png" href="https://i.ibb.co/R4Zmy1Ps/logo.webp">
 <meta name="theme-color" content="#ea580c">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -68,7 +68,7 @@ fbq('track', 'PageView');
         
        <header class="relative bg-white shadow-sm">
     <div class="h-40 w-full relative">
-        <img id="store-cover" src="img/imgfondo.webp" class="w-full h-full object-cover">
+        <img id="store-cover" src="https://i.ibb.co/67KKkrg8/imgfondo.webp" class="w-full h-full object-cover">
         <div class="absolute inset-0 bg-black/20"></div>
     </div>
 
@@ -88,7 +88,7 @@ fbq('track', 'PageView');
 
           <div class="w-28 h-28 rounded-full bg-[#1a1a1a] p-0.5 border border-white/10 shadow-[0_0_20px_rgba(255,107,0,0.2)]">
     <img id="store-logo" 
-         src="img/logoroti.webp" 
+         src="https://i.ibb.co/R4Zmy1Ps/logo.webp" 
          class="w-full h-full rounded-full object-cover"
          onerror="this.src='https://placehold.co/200x200/1a1a1a/ff6b00?text=LOGO'">
 </div>
@@ -206,7 +206,7 @@ fbq('track', 'PageView');
             <div class="grid grid-cols-1 gap-5">
                 <div>
                     <label class="block text-[11px] font-bold text-[#ff6b00] uppercase tracking-widest mb-2 ml-1">Zona de Entrega</label>
-                    <select id="cust-zone" onchange="actualizarTotalConEnvio()" 
+                    <select id="delivery-zone" onchange="actualizarTotalConEnvio()" 
                             class="w-full bg-[#0f0f0f] p-4 rounded-2xl border border-white/5 text-white focus:outline-none focus:border-[#ff6b00]/50 transition-all appearance-none cursor-pointer">
                         </select>
                 </div>
@@ -245,110 +245,64 @@ fbq('track', 'PageView');
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
     <script>
-        // Inicializamos Firebase
+        // 1. Configuración de Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyAzi6h9W6S5s3tdv-TDhkiE5v3ltivsxWo",
-            authDomain: "menuya-app.firebaseapp.com",
-            databaseURL: "https://menuya-app-default-rtdb.firebaseio.com",
-            projectId: "menuya-app",
-            storageBucket: "menuya-app.firebasestorage.app",
-            messagingSenderId: "481814790231",
-            appId: "1:481814790231:web:2a68b7f8d93de020a8e312",
-            measurementId: "G-KX859G1F3Q"
+            apiKey: "AIzaSyALQvj5eTB6j-qheLn-1R4S_r3fUnRys7c",
+            authDomain: "delivery-san-carlos.firebaseapp.com",
+            projectId: "delivery-san-carlos",
+            storageBucket: "delivery-san-carlos.firebasestorage.app",
+            messagingSenderId: "66338904091",
+            appId: "1:66338904091:web:f346aeb950955742b340be"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Función para escuchar la base de datos
-       function cargarMenuDesdeNube() {
-    db.ref('productos').on('value', (snapshot) => {
-        const data = snapshot.val();
-        
-        // Convertimos el objeto de Firebase en un array si es necesario
-        // y lo asignamos a la variable global
-        productos = data ? Object.values(data) : [];
-        
-        console.log("Datos recibidos de Firebase:", productos); // Esto te servirá para ver en la consola si llega el pancho
+        function cargarTodoDesdeNube() {
+            // Escuchar CONFIGURACIÓN (Actualiza TIENDA_CONFIG directamente)
+            db.ref('config').on('value', (snapshot) => {
+                const configNube = snapshot.val();
+                if (configNube) {
+                    // Actualizamos la variable global (sin window. para asegurar que pise el let de data.js)
+                    TIENDA_CONFIG = { ...TIENDA_CONFIG, ...configNube };
 
-        // Forzamos el renderizado
-        if (typeof renderProductos === 'function') {
-            renderProductos(); 
-        } else if (typeof initApp === 'function') {
-            initApp();
+                    // Actualizar UI inmediata
+                    const elNombre = document.getElementById('store-name');
+                    if (elNombre) elNombre.innerText = TIENDA_CONFIG.nombre;
+
+                    // Forzar verificación de horario con el nombre correcto de la función
+                    if (typeof checkStoreStatus === 'function') checkStoreStatus();
+                }
+            });
+
+            // Escuchar PRODUCTOS
+            db.ref('productos').on('value', (snapshot) => {
+                const data = snapshot.val();
+                // Actualizamos la variable global productos
+                productos = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+                
+                // Renderizamos usando la función correcta de ui.js
+                if (typeof renderProducts === 'function') {
+                    renderProducts(productos);
+                }
+
+                // Actualizamos las categorías dinámicamente cada vez que cambian los productos
+                if (typeof renderCategories === 'function') {
+                    renderCategories();
+                }
+            });
+
+            // Escuchar ZONAS DE ENVÍO
+            db.ref('zonas').on('value', (snapshot) => {
+                const data = snapshot.val();
+                TIENDA_CONFIG.zonas = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+            });
         }
-    });
-}
 
-        // 4. INICIO DE LA APP
+        // Iniciar la App y luego conectar con la Nube
         document.addEventListener('DOMContentLoaded', () => {
-            initApp();             // Arranca tu app normal
-            cargarMenuDesdeNube(); // Empieza a escuchar los cambios en vivo
+            initApp(); 
+            cargarTodoDesdeNube();
         });
-
-       function cargarTodoDesdeNube() {
-    // 1. VALORES POR DEFECTO (Se ejecutan apenas carga la página)
-    // Esto evita que salga "undefined" mientras esperamos a Firebase
-    window.TIENDA_CONFIG = {
-        nombre: "Cargando...",
-        telefono: "",
-        moneda: "$", // <-- Símbolo fijo aquí para evitar errores
-        horario: {
-            turno1: { apertura: "00:00", cierre: "00:00" },
-            turno2: { apertura: "00:00", cierre: "00:00" }
-        }
-    };
-
-    // 2. ESCUCHAR CONFIGURACIÓN (Nombre, Teléfono, Horarios)
-    db.ref('config').on('value', (snapshot) => {
-        const configNube = snapshot.val();
-        if (configNube) {
-            // Unimos los valores por defecto con los que vienen de la nube
-            window.TIENDA_CONFIG = { ...window.TIENDA_CONFIG, ...configNube };
-
-            // Actualizar Nombre en el H1
-            const elNombre = document.getElementById('store-name');
-            if (elNombre) elNombre.innerText = configNube.nombre;
-
-            // Actualizar el Badge de Estado (Abierto/Cerrado)
-            if (typeof actualizarEstadoTienda === 'function') {
-                actualizarEstadoTienda();
-            }
-            
-            // Si tenés una función que renderiza el carrito, la llamamos 
-            // para que actualice la moneda si estaba abierta
-            if (typeof renderCarrito === 'function') renderCarrito();
-
-            console.log("Configuración de la nube aplicada:", configNube.nombre);
-        }
-    });
-
-    // 3. ESCUCHAR PRODUCTOS
-    db.ref('productos').on('value', (snapshot) => {
-        const data = snapshot.val();
-        // Convertimos a Array y lo guardamos en la variable que usa tu catálogo
-        productos = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
-        
-        console.log("Productos cargados:", productos.length);
-
-        // Renderizamos la interfaz según la función que use tu app
-        if (typeof renderProductos === 'function') {
-            renderProductos(); 
-        } else if (typeof initApp === 'function') {
-            initApp();
-        }
-    });
-}
-
-// Iniciar todo cuando cargue el DOM
-document.addEventListener('DOMContentLoaded', () => {
-    cargarTodoDesdeNube();
-});
-
-// Cambiá el listener del final por este:
-document.addEventListener('DOMContentLoaded', () => {
-    cargarTodoDesdeNube();
-});
-
     </script>
 </body>
 </html>
