@@ -96,9 +96,15 @@ function checkStoreStatus() {
         if (t1Activo && !t2Activo) proximo = t1Ape; 
         else if (!t1Activo && t2Activo) proximo = t2Ape; 
         else if (t1Activo && t2Activo) {
-            const [h1, m1] = t1Ape.split(':').map(Number);
-            if (minActual < (h1 * 60 + m1)) proximo = t1Ape;
-            else proximo = t2Ape;
+            const minApe1 = t1Ape.split(':').reduce((h, m) => h * 60 + +m);
+            const minApe2 = t2Ape.split(':').reduce((h, m) => h * 60 + +m);
+
+            // Si la hora actual es menor a la apertura 1 O mayor a la apertura 2, el próximo es el Turno 1
+            if (minActual < minApe1 || minActual >= minApe2) {
+                proximo = t1Ape;
+            } else {
+                proximo = t2Ape;
+            }
         }
 
         updateStatusBadge(estaAbierto, proximo);
