@@ -198,8 +198,8 @@ function renderProducts(productosToRender) {
     catalog.innerHTML = productosToRender.map(prod => {
         let opcionesHTML = '';
         let precioDisplay = `$ ${prod.precio.toLocaleString()}`;
-        
-        let btnAgregar = `<button type="button" onclick="addToCart(${prod.id})" class="h-10 px-5 flex items-center justify-center bg-[#ff6b00] text-black rounded-xl font-bold shadow-md hover:scale-105 active:scale-95 transition-all uppercase tracking-wide text-xs">Agregar <span class="text-lg leading-none ml-2 mb-0.5">+</span></button>`;
+
+        let btnAgregar = `<button type="button" onclick="addToCart('${prod.id}')" class="h-10 px-5 flex items-center justify-center bg-[#ff6b00] text-black rounded-xl font-bold shadow-md hover:scale-105 active:scale-95 transition-all uppercase tracking-wide text-xs">Agregar <span class="text-lg leading-none ml-2 mb-0.5">+</span></button>`;
 
         if (prod.opciones && prod.opciones.length > 0) {
             precioDisplay = `Desde $${prod.opciones[0].precio.toLocaleString()}`;
@@ -208,7 +208,7 @@ function renderProducts(productosToRender) {
                     ${prod.opciones.map((op, i) => `<option value="${i}">${op.nombre} - $${op.precio.toLocaleString()}</option>`).join('')}
                 </select>
             `;
-            btnAgregar = `<button type="button" onclick="addToCart(${prod.id}, document.getElementById('opc-${prod.id}').value)" class="h-10 px-5 flex items-center justify-center bg-[#ff6b00] text-black rounded-xl font-bold shadow-md hover:scale-105 active:scale-95 transition-all uppercase tracking-wide text-xs">Agregar <span class="text-lg leading-none ml-2 mb-0.5">+</span></button>`;
+            btnAgregar = `<button type="button" onclick="addToCart('${prod.id}', document.getElementById('opc-${prod.id}').value)" class="h-10 px-5 flex items-center justify-center bg-[#ff6b00] text-black rounded-xl font-bold shadow-md hover:scale-105 active:scale-95 transition-all uppercase tracking-wide text-xs">Agregar <span class="text-lg leading-none ml-2 mb-0.5">+</span></button>`;
         }
 
         return `
