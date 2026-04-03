@@ -322,9 +322,10 @@ function obtenerUbicacion() {
             if (window.lucide) lucide.createIcons();
         },
         (error) => {
-            btn.innerHTML = '<i data-lucide="map-pin" class="w-4 h-4"></i> REINTENTAR UBICACIÓN';
+                    btn.innerHTML = '<i data-lucide="map-pin" class="w-4 h-4"></i> ENVIAR MI UBICACIÓN ACTUAL';
             if (window.lucide) lucide.createIcons();
-            alert("No se pudo obtener la ubicación. Por favor, asegúrate de dar permisos o escríbela manualmente.");
-        }
+                    alert("No pudimos obtener la ubicación. Revisá que tu GPS esté prendido y hayas dado los permisos, o escribí la dirección a mano.");
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
 }
