@@ -310,34 +310,38 @@ function obtenerUbicacion() {
 
     btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> OBTENIENDO...';
     if (window.lucide) lucide.createIcons();
+    
+navigator.geolocation.getCurrentPosition(
+    (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        coordsInput.value = `${lat},${lng}`;
+        
+        btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 text-white"></i> UBICACIÓN OBTENIDA';
+        btn.classList.replace('bg-orange-500', 'bg-green-600');
+        
+        if (window.lucide) lucide.createIcons();
+    },
+    (error) => {
+        btn.innerHTML = '<i data-lucide="map-pin" class="w-4 h-4 text-white"></i> ENVIAR MI UBICACIÓN ACTUAL';
+        btn.classList.replace('bg-green-600', 'bg-orange-500'); // Asegura que vuelva a ser naranja si falla
+        
+        if (window.lucide) lucide.createIcons();
 
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            coordsInput.value = `${lat},${lng}`;
-            btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> UBICACIÓN OBTENIDA';
-            btn.classList.replace('text-orange-500', 'text-green-500');
-            btn.classList.replace('border-orange-500/30', 'border-green-500/30');
-            if (window.lucide) lucide.createIcons();
-        },
-        (error) => {
-                btn.innerHTML = '<i data-lucide="map-pin" class="w-4 h-4"></i> ENVIAR MI UBICACIÓN ACTUAL';
-                if (window.lucide) lucide.createIcons();
-
-                const errorMsg = "No pudimos obtener la ubicación. Revisá que tu GPS esté prendido y hayas dado los permisos, o escribí la dirección a mano.";
-                if (window.Swal) {
-                    Swal.fire({
-                        text: errorMsg,
-                        icon: 'info',
-                        confirmButtonColor: '#ff6b00',
-                        background: '#1a1a1a',
-                        color: '#fff'
-                    });
-                } else {
-                    alert(errorMsg);
-                }
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+        const errorMsg = "No pudimos obtener la ubicación. Revisá que tu GPS esté prendido y hayas dado los permisos, o escribí la dirección a mano.";
+        
+        if (window.Swal) {
+            Swal.fire({
+                text: errorMsg,
+                icon: 'info',
+                confirmButtonColor: '#ff6b00',
+                background: '#1a1a1a',
+                color: '#fff'
+            });
+        } else {
+            alert(errorMsg);
+        }
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+);
 }
